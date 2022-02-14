@@ -1,0 +1,85 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: >
+  Lambda function to retrieve IP Address by API Request to external service
+Parameters:
+  IpApiEndpointParameter:
+    Type: String
+    Default: https://api.ipify.org
+    Description: IP API endpoint address
+  NamePrefix:
+    Type: String
+    Description: Prefix to be used for creating uniquely named resources
+Resources:
+  EtlLambdaFunctionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Path: "/"
+      PermissionsBoundary: !Sub arn:aws:iam::${AWS::AccountId}:policy/ScopePermissions
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole
+        - arn:aws:iam::aws:policy/AmazonSSMReadOnlyAccess
+      Policies:
+        - PolicyName: LambdaLogsPolicy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: "*"
+        - PolicyName: LambdaSSMPolicy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - ssm:GetParameters
+                Resource: "*"
+  EtlLambdaFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub ${NamePrefix}-etl-lambda
+      Runtime: python3.9
+      Timeout: 60
+      Handler: app.etl_lambda.lambda_handler
+      Role: !GetAtt EtlLambdaFunctionRole.Arn
+      Code: .deployment/lambda-package.zip
+      ReservedConcurrentExecutions: 1
+      Layers:
+        - arn:aws:lambda:eu-west-1:123980920791:layer:python_39_psycopg2_layer:1
+      Environment:
+        Variables:
+          IP_API_ENDPOINT: !Ref IpApiEndpointParameter
+      VpcConfig:
+        SecurityGroupIds:
+          - Fn::ImportValue: "network-infra-VPCSGID"
+        SubnetIds:
+          - Fn::ImportValue: !Sub "network-infra-PrivateSubnet0ID"
+  CafeDataBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: group3-cafe-data-bucket
+      NotificationConfiguration:
+        LambdaConfigurations:
+          - Event: s3:ObjectCreated:*
+            Function: !GetAtt EtlLambdaFunction.Arn
+  S3BucketPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref EtlLambdaFunction
+      Principal: s3.amazonaws.com
+      SourceArn: "arn:aws:s3:::group3-cafe-data-bucket"
