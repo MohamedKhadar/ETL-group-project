@@ -46,7 +46,7 @@ def map_list_of_products(list_of_products):     #maps data to new list, implemen
 
 def map_values_based_on_key_name(key, value):   #applies date_time and uuid functions to respective keys
     if key == 'order_id':
-        return get_unique_id()
+        return id_from_string(get_unique_id())
     elif key == 'date_time':
         return dt(value)
     else:
