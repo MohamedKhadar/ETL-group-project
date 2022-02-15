@@ -53,7 +53,7 @@ Resources:
     Properties:
       FunctionName: !Sub ${NamePrefix}-etl-lambda
       Runtime: python3.9
-      Timeout: 200
+      Timeout: 300
       Handler: app.etl_lambda.lambda_handler
       Role: !GetAtt EtlLambdaFunctionRole.Arn
       Code: .deployment/lambda-package.zip
