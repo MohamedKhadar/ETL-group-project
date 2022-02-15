@@ -5,47 +5,8 @@ import logging
 
 LOGGER = logging.getLogger()
 LOGGER.setLevel(logging.INFO)
-# def create_orders_table():
-#     conn = get_connection()
-#     cursor = conn.cursor()
-#     query = '''CREATE TABLE IF NOT EXISTS ORDERS(
-#         order_id varchar(255) NOT NULL PRIMARY KEY,
-#         date_time timestamp NOT NULL,
-#         store varchar(255) NOT NULL,
-#         total_spend numeric(20,2) NOT NULL,
-#         payment_method varchar(255) NOT NULL
-#     );'''
-#     cursor.execute(query)
-#     conn.commit()
-#     conn.close()
 
 
-# def create_order_products_table():
-#     conn = get_connection()
-#     cursor = conn.cursor()
-#     query = '''CREATE TABLE IF NOT EXISTS ORDER_PRODUCTS(
-#         order_id varchar(255) NOT NULL,
-#         constraint fk_orders foreign key(order_id) references orders(order_id),
-#         product_id varchar(255) NOT NULL,
-#         constraint fk_products foreign key(product_id) references products(product_id),
-#         price numeric(20,2) NOT NULL,
-#         quantity int NOT NULL
-#     );'''
-#     cursor.execute(query)
-#     conn.commit()
-#     conn.close()
-
-
-# def create_products_table():
-#     conn = get_connection()
-#     cursor = conn.cursor()
-#     query = '''CREATE TABLE IF NOT EXISTS PRODUCTS(
-#         product_id varchar(255) NOT NULL PRIMARY KEY,
-#         product_name varchar(255) NOT NULL
-#     );'''
-#     cursor.execute(query)
-#     conn.commit()
-#     conn.close()
 def get_ssm_parameters_under_path(path: str) -> dict:
     ssm_client = boto3.client("ssm", region_name="eu-west-1")
     response = ssm_client.get_parameters_by_path(
