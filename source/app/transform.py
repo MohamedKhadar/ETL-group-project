@@ -1,5 +1,5 @@
 from hashlib import sha256
-from uuid import uuid1
+from uuid import uuid4
 from datetime import datetime
 import operator
 import itertools
@@ -14,7 +14,7 @@ def id_from_string(input_string):   #creates unique hash for each product
 
 
 def get_unique_id():    #creates a unique id for each order_id
-    return str(uuid1())
+    return str(uuid4())[:10]
 
 
 def split_product_and_price(product_string):    #splits the 'items' into product_id, product_name, price 
