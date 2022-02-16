@@ -1,5 +1,4 @@
 from hashlib import sha256
-from uuid import uuid4
 from datetime import datetime
 import operator
 import itertools
@@ -11,10 +10,6 @@ def dt(date):   #formats date&time to postgreSQL 'timestamp'
 
 def id_from_string(input_string):   #creates unique hash for each product
     return str(int(sha256(input_string.encode('utf-8')).hexdigest(), 16))[:10]
-
-
-def get_unique_id():    #creates a unique id for each order_id
-    return str(uuid4())[:10]
 
 
 def split_product_and_price(product_string):    #splits the 'items' into product_id, product_name, price 
@@ -44,9 +39,17 @@ def map_list_of_products(list_of_products):     #maps data to new list, implemen
         for key in (set(items.keys()).union({'quantity'}))}, product_set))
 
 
-def map_values_based_on_key_name(key, value):   #applies date_time and uuid functions to respective keys
+def dt_to_num(date):
+    return datetime.strptime(date, "%d/%m/%Y %H:%M").strftime("%y%m%d")
+
+
+def prep_hash(order):
+    return f"{dt_to_num(order.get('date_time'))}{order.get('store')}{str(order.get('order_id'))}"
+
+
+def map_values_based_on_key_name(key, value, order):   #applies date_time and uuid functions to respective keys
     if key == 'order_id':
-        return id_from_string(get_unique_id())
+        return id_from_string(prep_hash(order))
     elif key == 'date_time':
         return dt(value)
     else:
@@ -55,7 +58,7 @@ def map_values_based_on_key_name(key, value):   #applies date_time and uuid func
 
 def map_list_of_orders(list_of_orders):     #produces transformed list of data
     exclude_keys = {'customer', 'card_num'}
-    extra_keys = {'order_id'}
-    return map(lambda items: {
-        key: (map_values_based_on_key_name(key, items.get(key)) if key != 'items' else map_list_of_products(items[key]))
-        for key in (set(items.keys()).union(extra_keys) - exclude_keys)}, list_of_orders)
+    return map(lambda order: {
+        key: (map_values_based_on_key_name(key, order.get(key), order) if key != 'items' else map_list_of_products(order[key]))
+        for key in (set(order.keys()) - exclude_keys)}, list_of_orders)
+        # for key in (set(items.keys()).union(extra_keys) - exclude_keys)}, list_of_orders)
