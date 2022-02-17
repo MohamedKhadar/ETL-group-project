@@ -6,7 +6,7 @@ on:
       - main
 jobs:
   deploy:
-    name: deploy to aws
+    name: deploy to AWS
     runs-on: ubuntu-latest
     env:
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
