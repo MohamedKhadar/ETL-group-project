@@ -15,9 +15,5 @@ jobs:
     steps:
       - name: checkout-repo
         uses: actions/checkout@v2
-      - name: list-dir
-        run: | 
-          echo "Hello =)"
-          ls
-      - name: list-s3
-        run: aws s3 ls
+      - name: deployment
+        run: ./deploy.sh
