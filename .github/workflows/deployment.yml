@@ -12,7 +12,8 @@ jobs:
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       AWS_DEFAULT_REGION: eu-west-1
     steps:
-      - name: checkout-repo
+        name: checkout-repo
         uses: actions/checkout@v2
-      - name: deployment
+        name: deployment
+        uses: actions/checkout@v2
         run: ./deploy.sh

@@ -8,7 +8,7 @@ if [ -d ".deployment" ]; then rm -rf .deployment; fi
 # Install dependencies from requirements.txt with container at python 3.9
 docker run -v "$PWD":/var/task "public.ecr.aws/sam/build-python3.9" #/bin/sh -c "pip install -r requirements.txt -t ./.deployment/dependencies; exit"
 # Zip all installed dependencies into a deployment package
-cd ../.deployment/dependencies
+cd ./.deployment/dependencies
 zip -r ../lambda-package.zip .
 # Merge 'app' directory with python code into the deployment package zip
 cd ../../source
