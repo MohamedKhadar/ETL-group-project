@@ -15,4 +15,4 @@ jobs:
       - name: checkout-repo
         uses: actions/checkout@v2
       - name: deployment
-        run: git update-index --chmod=+x ./deploy.sh
+        run: ./deploy.sh
