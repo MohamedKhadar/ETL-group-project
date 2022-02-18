@@ -3,6 +3,9 @@ on:
   push:
     branches:
       - main
+  pull_request:
+    branches:
+      - main
 jobs:
   deploy:
     name: deploy to aws
@@ -15,4 +18,8 @@ jobs:
       - name: checkout-repo
         uses: actions/checkout@v2
       - name: deployment
+<<<<<<< HEAD
         run: ./deploy.sh
+=======
+        run: chmod +x ./deploy.sh
+>>>>>>> 34e46573f945ad3610d4661f35ae6e236bb1a9d2
