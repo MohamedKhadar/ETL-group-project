@@ -15,5 +15,4 @@ jobs:
       - name: checkout-repo
         uses: actions/checkout@v2
       - name: deployment
-        uses: actions/checkout@v2
-        run: ./deploy.sh
+        run: sh ./deploy.sh
