@@ -25,14 +25,14 @@ def lambda_handler(event, context):
     s3 = boto3.client('s3')
     s3.download_file(bucket_name, object_name, filepath)
     
-    data = extract.extract(filepath)
-    # print(data[0])
+    orders = extract.extract_orders(filepath)
+    products = extract.extract_products(filepath)
+    order_products = extract.extract_order_products(filepath)
     
-    transformed_data = run.data_structure(data)
+    final_data = orders + products + order_products
     
-    print(transformed_data[0])
-    # creds = db.get_ssm_parameters_under_path('/team3/redshift')
-    # for order in transformed_data:
-    #     LOGGER.info('inserting order into database')
-    #     db.insert_order(creds, order)
+    creds = db.get_ssm_parameters_under_path('/team3/redshift')
+    for x in final_data:
+        LOGGER.info('inserting order into database')
+        db.insert_order(creds, x)
     
