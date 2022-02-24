@@ -1,6 +1,6 @@
 AWSTemplateFormatVersion: 2010-09-09
 Description: >
-  Lambda function to retrieve IP Address by API Request to external service
+  Lambda functions to perform ETL processes and load into Redshift
 Parameters:
   IpApiEndpointParameter:
     Type: String
@@ -25,7 +25,8 @@ Resources:
       Path: "/"
       PermissionsBoundary: !Sub arn:aws:iam::${AWS::AccountId}:policy/ScopePermissions
       ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess
+        - arn:aws:iam::aws:policy/AmazonS3FullAccess
+        - arn:aws:iam::aws:policy/AmazonSQSFullAccess
         - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
         - arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole
         - arn:aws:iam::aws:policy/AmazonSSMReadOnlyAccess
@@ -53,7 +54,7 @@ Resources:
     Properties:
       FunctionName: !Sub ${NamePrefix}-etl-lambda
       Runtime: python3.9
-      Timeout: 600
+      Timeout: 300
       Handler: app.etl_lambda.lambda_handler
       Role: !GetAtt EtlLambdaFunctionRole.Arn
       Code: .deployment/lambda-package.zip
@@ -62,45 +63,24 @@ Resources:
       Environment:
         Variables:
           IP_API_ENDPOINT: !Ref IpApiEndpointParameter
+      
   LoadLambdaFunction:
     Type: AWS::Lambda::Function
     Properties:
       FunctionName: !Sub ${NamePrefix}-load-lambda
       Runtime: python3.9
-      Timeout: 600
+      Timeout: 300
       Handler: app.load_lambda.lambda_handler
       Role: !GetAtt EtlLambdaFunctionRole.Arn
       Code: .deployment/lambda-package.zip
       ReservedConcurrentExecutions: 1
       Layers:
         - arn:aws:lambda:eu-west-1:123980920791:layer:python_39_psycopg2_layer:1
-      Environment:
-        Variables:
-          IP_API_ENDPOINT: !Ref IpApiEndpointParameter
       VpcConfig:
         SecurityGroupIds:
           - Fn::ImportValue: "network-infra-VPCSGID"
         SubnetIds:
           - Fn::ImportValue: !Sub "network-infra-PrivateSubnet0ID"
-  CafeDataBucket:
-    Type: AWS::S3::Bucket
-    Properties:
-      BucketName: group3-cafe-data-bucket
-      NotificationConfiguration:
-        LambdaConfigurations:
-          - Event: s3:ObjectCreated:*
-            Function: !GetAtt EtlLambdaFunction.Arn
-  TransformedDataBucket:
-    Type: AWS::S3::Bucket
-    Properties:
-      BucketName: group3-transformed-data-bucket
-  S3BucketPermission:
-    Type: AWS::Lambda::Permission
-    Properties:
-      Action: lambda:InvokeFunction
-      FunctionName: !Ref EtlLambdaFunction
-      Principal: s3.amazonaws.com
-      SourceArn: "arn:aws:s3:::group3-cafe-data-bucket"
   
   LoadLambdaFunctionEventSourceMapping:
     Type: AWS::Lambda::EventSourceMapping
@@ -109,10 +89,44 @@ Resources:
       Enabled: true
       EventSourceArn: !GetAtt LoadQueue.Arn
       FunctionName: !GetAtt LoadLambdaFunction.Arn
+    
+
 
   LoadQueue:
     Type: AWS::SQS::Queue
-    Properties :
-      QueueName: group3-load-queue
+    Properties:
+      QueueName: !Sub ${NamePrefix}-load-queue
       DelaySeconds: 0
-      VisibilityTimeout: 120  
+      VisibilityTimeout: 300
+      RedrivePolicy:
+        deadLetterTargetArn: !GetAtt LoadDeadLetterQueue.Arn
+        maxReceiveCount: 5
+
+  LoadDeadLetterQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub ${NamePrefix}-load-queue-dlq
+  
+  CafeTransformedDatabucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: group3-cafe-datatrans-bucket
+  
+  
+  
+  
+  CafeDataBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: group3-cafe-data-bucket
+      NotificationConfiguration:
+        LambdaConfigurations:
+          - Event: s3:ObjectCreated:*
+            Function: !GetAtt EtlLambdaFunction.Arn
+  S3BucketPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref EtlLambdaFunction
+      Principal: s3.amazonaws.com
+      SourceArn: "arn:aws:s3:::group3-cafe-data-bucket"
