@@ -31,19 +31,19 @@ def lambda_handler(event, context):
     creds = db.get_ssm_parameters_under_path('/team3/redshift')
     if data_type == 'orders':
         orders = extract.extract_orders(filepath)
-        LOGGER.info(f'Extracted orders data first row {orders[0]}')
+        LOGGER.info(f'Extracted orders data, first row is {orders[0]}')
         for x in orders:
             LOGGER.info('inserting order into order table')
             db.insert_order(creds, x)
     elif data_type == 'products':
         products = extract.extract_products(filepath)
-        LOGGER.info(f'Extracted products data first row {products[0]}')
+        LOGGER.info(f'Extracted products data, first row is {products[0]}')
         for y in products:
             LOGGER.info('inserting products into products table')
             db.insert_product(creds, y)
     elif data_type == 'order_products':
         order_products = extract.extract_order_products(filepath)
-        LOGGER.info(f'Extracted order_products data first row {order_products[0]}')
+        LOGGER.info(f'Extracted order_products data, first row is {order_products[0]}')
         for z in order_products:
             LOGGER.info('inserting order_products into order_products table')
             db.insert_order_product(creds, z)
