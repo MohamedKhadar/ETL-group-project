@@ -54,7 +54,7 @@ Resources:
     Properties:
       FunctionName: !Sub ${NamePrefix}-etl-lambda
       Runtime: python3.9
-      Timeout: 300
+      Timeout: 500
       Handler: app.etl_lambda.lambda_handler
       Role: !GetAtt EtlLambdaFunctionRole.Arn
       Code: .deployment/lambda-package.zip
@@ -69,7 +69,7 @@ Resources:
     Properties:
       FunctionName: !Sub ${NamePrefix}-load-lambda
       Runtime: python3.9
-      Timeout: 300
+      Timeout: 500
       Handler: app.load_lambda.lambda_handler
       Role: !GetAtt EtlLambdaFunctionRole.Arn
       Code: .deployment/lambda-package.zip
@@ -97,7 +97,7 @@ Resources:
     Properties:
       QueueName: !Sub ${NamePrefix}-load-queue
       DelaySeconds: 0
-      VisibilityTimeout: 300
+      VisibilityTimeout: 500
       RedrivePolicy:
         deadLetterTargetArn: !GetAtt LoadDeadLetterQueue.Arn
         maxReceiveCount: 5
