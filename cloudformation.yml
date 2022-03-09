@@ -1,14 +1,6 @@
 AWSTemplateFormatVersion: 2010-09-09
 Description: >
   Lambda functions to perform ETL processes and load into Redshift
-Parameters:
-  IpApiEndpointParameter:
-    Type: String
-    Default: https://api.ipify.org
-    Description: IP API endpoint address
-  NamePrefix:
-    Type: String
-    Description: Prefix to be used for creating uniquely named resources
 Resources:
   EtlLambdaFunctionRole:
     Type: AWS::IAM::Role
@@ -100,7 +92,7 @@ Resources:
       VisibilityTimeout: 500
       RedrivePolicy:
         deadLetterTargetArn: !GetAtt LoadDeadLetterQueue.Arn
-        maxReceiveCount: 5
+        maxReceiveCount: 10
 
   LoadDeadLetterQueue:
     Type: AWS::SQS::Queue
@@ -111,8 +103,6 @@ Resources:
     Type: AWS::S3::Bucket
     Properties:
       BucketName: group3-cafe-datatrans-bucket
-  
-  
   
   
   CafeDataBucket:
