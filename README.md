@@ -1,1 +1,2 @@
 # group-3-project
+Group project to build an ETL pipeline that utilises AWS cloud services (Lambda, S3, Cloudformation, Redshift). The idea was to help a fake national cafe chain collate, clean and persiste their data from all stores through a robust ETL pipeline to the cloud and extract valuable business intelligence insights using Grafana.

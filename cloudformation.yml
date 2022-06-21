@@ -50,6 +50,7 @@ Resources:
       Handler: app.etl_lambda.lambda_handler
       Role: !GetAtt EtlLambdaFunctionRole.Arn
       Code: .deployment/lambda-package.zip
+      ReservedConcurrentExecutions: 1
       Layers:
         - arn:aws:lambda:eu-west-1:123980920791:layer:python_39_psycopg2_layer:1
       Environment:
